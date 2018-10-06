@@ -29,14 +29,15 @@ using namespace std;
 
 //----------------全局变量-------------------
 map<char,int>op_num_map;//字符映射关系，保证从1开始，0为串
-map<int,char>op_num_rmap;//反向映射，调试用
+map<int,char>op_num_rmap;//反向映射，调试用 
 int op_num_tot = 0;//终结字符数
-int status_tot = 0;
-
+int status_tot = 0;//用来节点标识ID 
+vector<int>op_num_vec;
 void init()
 {
 	op_num_map.clear();
 	op_num_rmap.clear();
+	op_num_vec.clear();
 	op_num_tot = 0;
 	status_tot = 0;
 	op_num_rmap[0] = '0';
@@ -69,6 +70,7 @@ string add_c(string in_re)//给源字符串添加连接运算符顺便统计正则中的终结运算符
 	rep(i,len)if(is_op_num(in_re[i]) && (!op_num_map.count(in_re[i]))){
 		op_num_map[in_re[i]] = ++op_num_tot;
 		op_num_rmap[op_num_tot] = in_re[i];
+		op_num_vec.push_back(op_num_tot);
 	}
 	repf(i,1,len-1){
 		
@@ -130,6 +132,7 @@ string to_suffix(string in_re)
 class node
 {
 	public:
+		node(){}
 		node(int type,int id){
 			switch(type){
 				case START_TYPE:
@@ -154,7 +157,7 @@ class node
 			}
 			nxt.clear();
 		}
-		vector<pair<node *,int>>nxt;
+		vector<pair<node *,int> >nxt;
 		bool is_end;
 		bool is_start;
 		int status_id;
@@ -164,6 +167,9 @@ class Graph
 {
 	public:
 		Graph(){}
+		Graph(node *u){
+			start_node = u;
+		}
 		Graph(int u){
 			//单个字符状态的转移
 			start_node = new node(START_TYPE,++status_tot);
@@ -225,6 +231,7 @@ class Graph
 			set<int>vis;
 			node * now;
 			Q.push(start_node);
+			vis.insert(start_node->status_id);
 			while(!Q.empty()){
 				now = Q.front();
 				Q.pop();
@@ -244,6 +251,124 @@ class Graph
 				cout << endl;
 			}
 		}
+		
+		Graph & to_dfa()
+		{
+			//BFS求e_c(0);
+			set<node *>e_c0;
+			map<set<node *> , node* >set_to_node;//用于对set进行映射，建立新的节点用 
+			map<int,set<node *> > int_to_set;//int 对 set 进行映射 
+			//map<set <node *> , int>set_to_int;
+			queue<node *>Q;
+			Q.push(start_node);
+			e_c0.insert(start_node);
+			while(!Q.empty()){
+				node *now = Q.front();
+				Q.pop();
+				int sz = Sz(now->nxt);
+				rep(i,sz){
+					if(now->nxt[i].second == 0 && (!e_c0.count(now->nxt[i].first))){
+						e_c0.insert(now->nxt[i].first);
+						Q.push(now->nxt[i].first);
+					}
+				}
+			}
+			node *new_start = new node(START_TYPE,++status_tot);
+			vector<node*>new_end_node;
+			set_to_node[e_c0] = new_start;
+			int_to_set[status_tot] = e_c0;
+			queue<int>Qi;
+			Qi.push(status_tot);
+			bool flag = false;
+			while(!Qi.empty()){
+			//	cout << "fuck"<< endl;
+				int u = Qi.front();
+				Qi.pop();
+				//set<node *>next;
+				node *now_node = set_to_node[int_to_set[u]];
+				int sz = Sz(op_num_vec);
+				rep(i,sz){
+					set<node *>next_set;
+				//	set<node *>vis_n;
+					flag = false;
+					//cout << endl;
+					for(set<node*>::iterator it = int_to_set[u].begin();it != int_to_set[u].end();it++){
+						//*it是一个node指针
+						//cout << (*it)->status_id << " "; 
+						//int szz = Sz((*it)->nxt);
+						//flag = false;
+					
+						queue<pair<node*,int> >move_q;
+					//	next_set.insert((*it));
+						move_q.push(make_pair((*it),1));
+						set<node *>vis_n;
+						while(!move_q.empty())
+						{
+							//cout << "fuck" << endl;
+							node * move_node = move_q.front().first;
+							int time = move_q.front().second;
+							int szz = Sz(move_node->nxt);
+							move_q.pop();
+							rep(j,szz){
+								if(move_node->nxt[j].second == op_num_vec[i] && time == 1 ){
+									next_set.insert(move_node->nxt[j].first);
+									vis_n.insert(move_node->nxt[j].first);
+									if(move_node->nxt[j].first->is_end)flag = true;
+									move_q.push(make_pair(move_node->nxt[j].first,0));
+								}
+								else if(move_node->nxt[j].second == 0 && (!vis_n.count(move_node->nxt[j].first))){
+									vis_n.insert(move_node->nxt[j].first);
+									if(time == 0){
+										//此时已经消耗类一个匹配字母，并根据空字母匹配到达此状态 
+										next_set.insert(move_node->nxt[j].first);
+										if(move_node->nxt[j].first->is_end)flag = true;
+									}
+									move_q.push(make_pair(move_node->nxt[j].first,time));	
+								}
+							}
+						}
+					}
+					if(!set_to_node.count(next_set)){
+						node *temp  = new node();
+						if(!flag)temp = new node(0,++status_tot);
+						else {
+						//	cout << "\nfuck\n";
+							temp = new node(END_TYPE,++status_tot);
+							new_end_node.push_back(temp);
+						}
+						now_node->nxt.push_back(make_pair(temp,op_num_vec[i]));
+						set_to_node[next_set] = temp;
+						int_to_set[status_tot] = next_set;
+					//	set_to_int[next_set] = status_tot;
+						Qi.push(status_tot);
+					}else{
+						node *temp = set_to_node[next_set];
+						now_node->nxt.push_back(make_pair(temp,op_num_vec[i]));
+					}
+					#ifdef DEBUG
+//					cout << "当前节点："<<now_node->status_id<<endl;
+//					cout << "当前节点集合" << endl;
+//					for(set<node*>::iterator it = int_to_set[now_node->status_id].begin();it != int_to_set[now_node->status_id].end();it++){
+//						cout << (*it)->status_id<<" ";
+//					}
+//					cout << endl;
+//					cout << "转移边："<<op_num_rmap[op_num_vec[i]]<<endl;
+//					cout << "转移集合节点：";
+//					for(set<node*>::iterator it = next_set.begin();it != next_set.end();it++){
+//						cout << (*it)->status_id<<" ";
+//					}
+//					cout << endl;
+					#endif
+				}
+			//d	cout << "fuck" << endl;
+				
+			}
+			
+			start_node = new_start;
+			end_node = new_end_node;
+			return *this;
+				 
+		} 
 		
 		node *start_node;
 		vector<node*>end_node;
@@ -285,9 +410,11 @@ Graph * build_nfa(string suffix_re)
 			//cout << "----------------------\n";
 			//tmp1->debug_print();
 			op_num.push(tmp1);
+		}else{
+			throw "Wrong RE!\n";
 		}
 	}
-	if(op_num.size()>1)throw "Wrong RE\n";
+	if(op_num.size()!=1)throw "Wrong RE\n";
 	return op_num.top();
 }
 int main()
@@ -318,10 +445,20 @@ int main()
 			
 			//更具后缀表达式建立NFA
 			int len = Len(suffix_re);
-			Graph *suffix_nfa = build_nfa(suffix_re);
+			Graph *suffix_fa = build_nfa(suffix_re);
+			
 			#ifdef DEBUG
-			suffix_nfa->debug_print();
+			cout << "\n-------\nNFA:\n";
+			suffix_fa->debug_print();
 			#endif
+			
+			suffix_fa->to_dfa();
+			
+			#ifdef DEBUG
+			cout << "\n-------\nDFA:\n";
+			suffix_fa->debug_print();
+			#endif
+			
 
 		}catch(const char *msg){
 			cerr << msg << endl;
