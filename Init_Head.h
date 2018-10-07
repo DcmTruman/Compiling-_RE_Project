@@ -1,4 +1,4 @@
-#ifndef _INIT_HEAD_H_
+ï»¿#ifndef _INIT_HEAD_H_
 #define _INIT_HEAD_H_
 #include <iostream>
 #include <string.h>
@@ -22,11 +22,11 @@
 #define debug(x) cout << "\n--------\nDebug :\n"<<#x<<" : "<<x<<" \n--------\n"
 #define Sz(x) (int)x.size()
 #define Len(x) (int)x.length()
-#define ADD_TYPE 1//Á´½Ó
-#define OR_TYPE 2//Ñ¡Ôñ
-#define CL_TYPE 3//±Õ°ü
-#define START_TYPE 1//ÆðÊ¼µã
-#define END_TYPE 2//ÖÕÖ¹µã
-#define DEBUG 
+#define ADD_TYPE 1//é“¾æŽ¥
+#define OR_TYPE 2//é€‰æ‹©
+#define CL_TYPE 3//é—­åŒ…
+#define START_TYPE 1//èµ·å§‹ç‚¹
+#define END_TYPE 2//ç»ˆæ­¢ç‚¹
+//#define DEBUG 
 using namespace std;
 #endif

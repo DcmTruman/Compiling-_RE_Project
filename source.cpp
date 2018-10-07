@@ -1,4 +1,4 @@
-#include "Node.h"
+ï»¿#include "Node.h"
 #include "Graph_Fa.h"
 #include "Init_Head.h"
 
@@ -9,20 +9,20 @@ int main()
 	while(true)
 	{
 		init();
-		string in_string;//ÊäÈë×Ö·û´®
-		string in_re;//ÊäÈëÕıÔò±í´ïÊ½
-		cout << "ÊäÈë×Ö·û´®" << endl;
+		string in_string;//è¾“å…¥å­—ç¬¦ä¸²
+		string in_re;//è¾“å…¥æ­£åˆ™è¡¨è¾¾å¼
+		cout << "è¾“å…¥å­—ç¬¦ä¸²" << endl;
 		cin >> in_string;
-		cout << "ÇëÊäÈëÆ¥ÅäÄ£Ê½" << endl; 
+		cout << "è¯·è¾“å…¥åŒ¹é…æ¨¡å¼" << endl; 
 		cin >> in_re;
 		try{
-			string suffix_re = to_suffix(in_re);//½«ÕıÔò±í´ïÊ½×¨Îªºó×º±í´ïÊ½
+			string suffix_re = to_suffix(in_re);//å°†æ­£åˆ™è¡¨è¾¾å¼ä¸“ä¸ºåç¼€è¡¨è¾¾å¼
 			#ifdef DEBUG
-			cout << "Ô­Ê¼ÕıÔò£º"+in_re<<endl;
-			cout << "ºó×º±í´ïÊ½£º"+suffix_re<<endl;
+			cout << "åŸå§‹æ­£åˆ™ï¼š"+in_re<<endl;
+			cout << "åç¼€è¡¨è¾¾å¼ï¼š"+suffix_re<<endl;
 			#endif	
 			
-			//¸ü¾ßºó×º±í´ïÊ½½¨Á¢NFA
+			//æ›´å…·åç¼€è¡¨è¾¾å¼å»ºç«‹NFA
 			int len = Len(suffix_re);
 			Graph *suffix_fa = build_nfa(suffix_re);
 			
@@ -46,9 +46,9 @@ int main()
 			#endif
 			
 			if(suffix_fa->try_re(in_string)){
-				cout << "ÊäÈë×Ö·û´®·ûºÏÕıÔò\n"; 
+				cout << "è¾“å…¥å­—ç¬¦ä¸²ç¬¦åˆæ­£åˆ™\n"; 
 			}else{
-				cout << "ÊäÈë×Ö·û´®²»·ûºÏÕıÔò\n"; 
+				cout << "è¾“å…¥å­—ç¬¦ä¸²ä¸ç¬¦åˆæ­£åˆ™\n"; 
 			}
 		}catch(const char *msg){
 			cerr << msg << endl;

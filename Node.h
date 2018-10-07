@@ -1,6 +1,6 @@
-#ifndef _NODE_H_
+﻿#ifndef _NODE_H_
 #define _NODE_H_
-#include ".\Init_Head.h"
+#include "Init_Head.h"
 
 class node
 {

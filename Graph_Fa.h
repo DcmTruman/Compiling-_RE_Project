@@ -1,4 +1,4 @@
-#ifndef _GRAPH_FA_H_
+ï»¿#ifndef _GRAPH_FA_H_
 #define _GRAPH_FA_H_
 #include "Init_Head.h"
 #include "Node.h"
@@ -20,7 +20,7 @@ class Graph
 		Graph & to_dfa(); 
 		int get_all_node(vector<node*> & all_node);
 		
-		//ÅĞ¶ÏÄ³¸öµã¸ù¾İÄ³¸ö×´Ì¬×ªÒÆÖ®ºóÊôÓÚÄÇ¸ö¼¯ºÏ 
+		//åˆ¤æ–­æŸä¸ªç‚¹æ ¹æ®æŸä¸ªçŠ¶æ€è½¬ç§»ä¹‹åå±äºé‚£ä¸ªé›†åˆ 
 		set<set<node*> >::iterator  get_node_in_set(set<set<node*> > & all_set , node *now_node , int edge_type);
 		Graph &  simplify_dfa();
 		bool try_re(string in_string);

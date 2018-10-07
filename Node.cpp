@@ -1,5 +1,5 @@
-#include ".\Node.h"
-#include ".\Init_Head.h"
+﻿#include "Node.h"
+#include "Init_Head.h"
 
 node::node(){}
 node::node(int type,int id)

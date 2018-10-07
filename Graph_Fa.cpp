@@ -1,13 +1,13 @@
-#include ".\Graph_Fa.h"
-#include ".\Node.h"
-#include ".\Init_Head.h"
+ï»¿#include "Graph_Fa.h"
+#include "Node.h"
+#include "Init_Head.h"
 
-//------------È«¾Ö±äÁ¿----------------------- 
-map<char,int>op_num_map;//×Ö·ûÓ³Éä¹ØÏµ£¬±£Ö¤´Ó1¿ªÊ¼£¬0Îª´®
-map<int,char>op_num_rmap;//·´ÏòÓ³Éä£¬µ÷ÊÔÓÃ 
-int op_num_tot = 0;//ÖÕ½á×Ö·ûÊı
-int status_tot = 0;//ÓÃÀ´½Úµã±êÊ¶ID 
-vector<int>op_num_vec;
+//------------å…¨å±€å˜é‡----------------------- 
+map<char,int>op_num_map;//å­—ç¬¦æ˜ å°„å…³ç³»ï¼Œä¿è¯ä»1å¼€å§‹ï¼Œ0ä¸ºä¸²
+map<int,char>op_num_rmap;//åå‘æ˜ å°„ï¼Œè°ƒè¯•ç”¨ 
+int op_num_tot = 0;//ç»ˆç»“å­—ç¬¦æ•°
+int status_tot = 0;//ç”¨æ¥èŠ‚ç‚¹æ ‡è¯†ID 
+vector<int>op_num_vec;//è®°å½•æ‰€æœ‰ç»ˆç»“å­—ç¬¦ 
 void init()
 {
 	op_num_map.clear();
@@ -23,20 +23,20 @@ void init()
 
 
 
-bool is_op_num(char now)//ÓÃÓÚÅĞ¶Ïµ¥¸ö×Ö·ûÊÇ²Ù×÷ÔËËã·û»¹ÊÇ²Ù×÷Êı
+bool is_op_num(char now)//ç”¨äºåˆ¤æ–­å•ä¸ªå­—ç¬¦æ˜¯æ“ä½œè¿ç®—ç¬¦è¿˜æ˜¯æ“ä½œæ•°
 {
 	if(now == '(' || now == ')' || now == '|' || now == '*' || now == '.')return false;
 	return true;
 }
 
-int get_prov(char now)//·µ»ØÃ¿ÖÖ×Ö·ûµÄÓÅÏÈ¼¶ 
+int get_prov(char now)//è¿”å›æ¯ç§å­—ç¬¦çš„ä¼˜å…ˆçº§ 
 {
 	if(now == '.')return 1;
 	if(now == '*')return 2;
 	if(now == ')' || now == '(') return 3;
 	if(now == '|')return 0;
 } 
-string add_c(string in_re)//¸øÔ´×Ö·û´®Ìí¼ÓÁ¬½ÓÔËËã·ûË³±ãÍ³¼ÆÕıÔòÖĞµÄÖÕ½áÔËËã·û 
+string add_c(string in_re)//ç»™æºå­—ç¬¦ä¸²æ·»åŠ è¿æ¥è¿ç®—ç¬¦é¡ºä¾¿ç»Ÿè®¡æ­£åˆ™ä¸­çš„ç»ˆç»“è¿ç®—ç¬¦ 
 {
 	string ret = "";
 	ret += in_re[0]; 
@@ -111,7 +111,7 @@ Graph::Graph(node *u)
 }
 Graph::Graph(int u)
 {
-	//µ¥¸ö×Ö·û×´Ì¬µÄ×ªÒÆ
+	//å•ä¸ªå­—ç¬¦çŠ¶æ€çš„è½¬ç§»
 	start_node = new node(START_TYPE,++status_tot);
 	node *e_n = new node(END_TYPE,++status_tot);
 	start_node->nxt.push_back(make_pair(e_n,u));
@@ -182,9 +182,9 @@ void Graph::debug_print()
 		now = Q.front();
 		Q.pop();
 		
-		cout << "µ±Ç°½Úµã±àºÅ : "<<now->status_id<<endl;
-		if(now->is_start)cout << "µ±Ç°½ÚµãÎªÆğÊ¼½Úµã"<<endl;
-		if(now->is_end)cout << "µ±Ç°½ÚµãÎªÖÕÖ¹½Úµã"<<endl;
+		cout << "å½“å‰èŠ‚ç‚¹ç¼–å· : "<<now->status_id<<endl;
+		if(now->is_start)cout << "å½“å‰èŠ‚ç‚¹ä¸ºèµ·å§‹èŠ‚ç‚¹"<<endl;
+		if(now->is_end)cout << "å½“å‰èŠ‚ç‚¹ä¸ºç»ˆæ­¢èŠ‚ç‚¹"<<endl;
 		int sz = Sz(now->nxt);
 		rep(i,sz){
 			printf("now : %2d , next : %2d , edge_weight : %2c\n",now->status_id,now->nxt[i].first->status_id,op_num_rmap[now->nxt[i].second]);
@@ -200,14 +200,15 @@ void Graph::debug_print()
         
 Graph & Graph::to_dfa()
 {
-	//BFSÇóe_c(0);
+	//BFSæ±‚e_c(0);
 	set<node *>e_c0;
-	map<set<node *> , node* >set_to_node;//ÓÃÓÚ¶Ôset½øĞĞÓ³Éä£¬½¨Á¢ĞÂµÄ½ÚµãÓÃ 
-	map<int,set<node *> > int_to_set;//int ¶Ô set ½øĞĞÓ³Éä 
+	map<set<node *> , node* >set_to_node;//ç”¨äºå¯¹setè¿›è¡Œæ˜ å°„ï¼Œå»ºç«‹æ–°çš„èŠ‚ç‚¹ç”¨ 
+	map<int,set<node *> > int_to_set;//int å¯¹ set è¿›è¡Œæ˜ å°„ 
 	//map<set <node *> , int>set_to_int;
 	queue<node *>Q;
 	Q.push(start_node);
 	e_c0.insert(start_node);
+	//å…ˆç”¨BFSæ±‚æ‰€æœ‰åªç»è¿‡ç©ºä¸²ä¸æ¶ˆè€—å­—ç¬¦å°±èƒ½åˆ°è¾¾çš„èŠ‚ç‚¹
 	while(!Q.empty()){
 		node *now = Q.front();
 		Q.pop();
@@ -239,7 +240,7 @@ Graph & Graph::to_dfa()
 			flag = false;
 			//cout << endl;
 			for(set<node*>::iterator it = int_to_set[u].begin();it != int_to_set[u].end();it++){
-				//*itÊÇÒ»¸önodeÖ¸Õë
+				//*itæ˜¯ä¸€ä¸ªnodeæŒ‡é’ˆ
 				//cout << (*it)->status_id << " "; 
 				//int szz = Sz((*it)->nxt);
 				//flag = false;
@@ -265,7 +266,7 @@ Graph & Graph::to_dfa()
 						else if(move_node->nxt[j].second == 0 && (!vis_n.count(move_node->nxt[j].first))){
 							vis_n.insert(move_node->nxt[j].first);
 							if(time == 0){
-								//´ËÊ±ÒÑ¾­ÏûºÄÀàÒ»¸öÆ¥Åä×ÖÄ¸£¬²¢¸ù¾İ¿Õ×ÖÄ¸Æ¥Åäµ½´ï´Ë×´Ì¬ 
+								//æ­¤æ—¶å·²ç»æ¶ˆè€—ç±»ä¸€ä¸ªåŒ¹é…å­—æ¯ï¼Œå¹¶æ ¹æ®ç©ºå­—æ¯åŒ¹é…åˆ°è¾¾æ­¤çŠ¶æ€ 
 								next_set.insert(move_node->nxt[j].first);
 								if(move_node->nxt[j].first->is_end)flag = true;
 							}
@@ -292,14 +293,14 @@ Graph & Graph::to_dfa()
 				now_node->nxt.push_back(make_pair(temp,op_num_vec[i]));
 			}
 			#ifdef DEBUG
-//					cout << "µ±Ç°½Úµã£º"<<now_node->status_id<<endl;
-//					cout << "µ±Ç°½Úµã¼¯ºÏ" << endl;
+//					cout << "å½“å‰èŠ‚ç‚¹ï¼š"<<now_node->status_id<<endl;
+//					cout << "å½“å‰èŠ‚ç‚¹é›†åˆ" << endl;
 //					for(set<node*>::iterator it = int_to_set[now_node->status_id].begin();it != int_to_set[now_node->status_id].end();it++){
 //						cout << (*it)->status_id<<" ";
 //					}
 //					cout << endl;
-//					cout << "×ªÒÆ±ß£º"<<op_num_rmap[op_num_vec[i]]<<endl;
-//					cout << "×ªÒÆ¼¯ºÏ½Úµã£º";
+//					cout << "è½¬ç§»è¾¹ï¼š"<<op_num_rmap[op_num_vec[i]]<<endl;
+//					cout << "è½¬ç§»é›†åˆèŠ‚ç‚¹ï¼š";
 //					for(set<node*>::iterator it = next_set.begin();it != next_set.end();it++){
 //						cout << (*it)->status_id<<" ";
 //					}
@@ -367,14 +368,14 @@ Graph &  Graph::simplify_dfa()
 	}
 	all_set.insert(end_set);
 	all_set.insert(not_end_set);
-	bool same_node = false;//ÓÃÀ´±ê¼Ç¼¯ºÏÖĞµÄµã¾­¹ı×ªÒÆÖ®ºóËùÊôÓÚµÄ¼¯ºÏÊÇ·ñµÈ¼Û
+	bool same_node = false;//ç”¨æ¥æ ‡è®°é›†åˆä¸­çš„ç‚¹ç»è¿‡è½¬ç§»ä¹‹åæ‰€å±äºçš„é›†åˆæ˜¯å¦ç­‰ä»·
 	int set_size = -1;
 	//cout << "fuck"<<all_set.size();
 	while(true){
 		 if(set_size == all_set.size())break;
 		 else set_size = all_set.size();
-		 vector<set<node *> >set_vec;//ÓÃÀ´´æ´¢µ±Ç°set¿ÉÒÔ±»»®·Ö³ÉÄÄĞ©set 
-		 set<node*>vis;//¼ÇÒä»¯½µµÍ¸´ÔÓ¶ÈÖÁO(n) 
+		 vector<set<node *> >set_vec;//ç”¨æ¥å­˜å‚¨å½“å‰setå¯ä»¥è¢«åˆ’åˆ†æˆå“ªäº›set 
+		 set<node*>vis;//è®°å¿†åŒ–é™ä½å¤æ‚åº¦è‡³O(n) 
 		 for(set< set<node*> >::iterator it_set = all_set.begin();it_set != all_set.end();it_set++){
 		 	
 		 	for(set<node*>::iterator i_node = (*it_set).begin();i_node != (*it_set).end();i_node++){
@@ -418,7 +419,7 @@ Graph &  Graph::simplify_dfa()
 //			}	
 	#endif
 	
-	map<node *,set<node*> >node_to_set;//¼ÇÂ¼Ã¿¸öµã¶ÔÓ¦µÄ¼¯ºÏ
+	map<node *,set<node*> >node_to_set;//è®°å½•æ¯ä¸ªç‚¹å¯¹åº”çš„é›†åˆ
 	map<set<node*>,node *>set_to_newnode;
 	node *new_start = new node(START_TYPE,++status_tot);
 	vector<node*>new_end_node;
@@ -444,7 +445,7 @@ Graph &  Graph::simplify_dfa()
 			node *nxt = set_to_newnode[node_to_set[all_node[i]->nxt[j].first]];
 			int type = all_node[i]->nxt[j].second;
 			bool flag = true;
-			//´Ë´¦·ÀÖ¹ÖØ±ß 
+			//æ­¤å¤„é˜²æ­¢é‡è¾¹ 
 
 			if(find(set_to_newnode[node_to_set[all_node[i]]]->nxt.begin(),set_to_newnode[node_to_set[all_node[i]]]->nxt.end(),make_pair(nxt,type))==set_to_newnode[node_to_set[all_node[i]]]->nxt.end())
 			{
@@ -464,7 +465,7 @@ bool Graph::try_re(string in_string)
 	int len = Len(in_string);
 	node *now = start_node;
 	rep(i,len){
-		if(!op_num_map.count(in_string[i]))return false;//Æ¥Åä×Ö·û´®ÖĞ³öÏÖÁËÕıÔòÖĞÎ´³öÏÖµÄÖÕ½á×Ö·û 
+		if(!op_num_map.count(in_string[i]))return false;//åŒ¹é…å­—ç¬¦ä¸²ä¸­å‡ºç°äº†æ­£åˆ™ä¸­æœªå‡ºç°çš„ç»ˆç»“å­—ç¬¦ 
 		rep(j,Sz(now->nxt)){
 			if(now->nxt[j].second == op_num_map[in_string[i]]){
 				now = now->nxt[j].first;
