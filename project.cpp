@@ -25,7 +25,7 @@
 #define CL_TYPE 3//闭包
 #define START_TYPE 1//起始点
 #define END_TYPE 2//终止点
-#define DEBUG 
+//#define DEBUG 
 using namespace std;
 
 //----------------全局变量-------------------
@@ -253,6 +253,8 @@ class Graph
 			}
 		}
 		
+		
+		
 		Graph & to_dfa()
 		{
 			//BFS求e_c(0);
@@ -365,11 +367,176 @@ class Graph
 				
 			}
 			
+
 			start_node = new_start;
 			end_node = new_end_node;
-			return *this;
-				 
+			return *this;		 
 		} 
+		
+		//-------遍历获得这个图的所有节点------- 
+		int get_all_node(vector<node*> & all_node)
+		{
+			all_node.clear();
+			queue<node *>Q;
+			set<int>vis;
+			node * now;
+			Q.push(start_node);
+			all_node.push_back(start_node);
+			vis.insert(start_node->status_id);
+			while(!Q.empty()){
+				now = Q.front();
+				Q.pop();
+				int sz = Sz(now->nxt);
+				rep(i,sz){
+					if(!vis.count(now->nxt[i].first->status_id)){
+						all_node.push_back(now->nxt[i].first);
+						vis.insert(now->nxt[i].first->status_id);
+						Q.push(now->nxt[i].first);
+					}
+				}	
+			}
+			return Sz(all_node);
+		}
+		
+		//判断某个点根据某个状态转移之后属于那个集合 
+		set<set<node*> >::iterator  get_node_in_set(set<set<node*> > & all_set , node *now_node , int edge_type)
+		{
+			int sz = Sz(now_node->nxt);
+			rep(i,sz){
+				if(now_node->nxt[i].second == edge_type){
+					node *nxt_node = now_node->nxt[i].first;
+					for(set<set<node*> >::iterator it = all_set.begin();it != all_set.end();it++){
+						if((*it).count(nxt_node)){
+							return it;
+						}
+					}
+					//break;
+				}
+			}
+		}
+		
+		Graph &  simplify_dfa()
+		{
+			
+			vector< node * >all_node;
+			set< set<node*> >all_set;
+			int sz = get_all_node(all_node);
+			set<node *>end_set;
+			set<node *>not_end_set;
+			rep(i,sz){
+				if(all_node[i]->is_end)end_set.insert(all_node[i]);
+				else not_end_set.insert(all_node[i]);
+			}
+			all_set.insert(end_set);
+			all_set.insert(not_end_set);
+			bool same_node = false;//用来标记集合中的点经过转移之后所属于的集合是否等价
+			int set_size = -1;
+			//cout << "fuck"<<all_set.size();
+			while(true){
+				 if(set_size == all_set.size())break;
+				 else set_size = all_set.size();
+				 vector<set<node *> >set_vec;//用来存储当前set可以被划分成哪些set 
+				 set<node*>vis;//记忆化降低复杂度至O(n) 
+				 for(set< set<node*> >::iterator it_set = all_set.begin();it_set != all_set.end();it_set++){
+				 	
+				 	for(set<node*>::iterator i_node = (*it_set).begin();i_node != (*it_set).end();i_node++){
+				 		if(vis.count((*i_node)))continue;
+				 		vis.insert((*i_node));
+				 		int set_pos = Sz(set_vec);
+				 		set<node *>temp_set;
+				 		temp_set.insert((*i_node));
+				 		set_vec.push_back(temp_set);
+				 		for(set<node*>::iterator j_node = (*it_set).begin();j_node != (*it_set).end();j_node++){
+				 			if(i_node == j_node)continue;
+				 			same_node = true;
+				 			rep(i,Sz(op_num_vec)){
+				 				if(get_node_in_set(all_set,(*i_node),op_num_vec[i]) != get_node_in_set(all_set,(*j_node),op_num_vec[i]))
+								 {
+				 					same_node = false;
+				 					break;
+								 }
+							}
+							if(same_node){
+								vis.insert((*j_node));
+								set_vec[set_pos].insert((*j_node));
+							}
+						}
+					}
+				 }
+				 all_set.clear();
+				 //cout << set_vec.size() << "fuck"<<endl;
+				 rep(i,Sz(set_vec)){
+				 	all_set.insert(set_vec[i]);
+				 }
+			}
+			
+			#ifdef DEBUG
+//			cout << "size : " << Sz(all_set) << endl;
+//			for(set< set<node*> >::iterator it_set = all_set.begin();it_set != all_set.end();it_set++){
+//				for(set<node*>::iterator i_node = (*it_set).begin();i_node != (*it_set).end();i_node++){
+//					cout << (*i_node)->status_id << " ";
+//				}
+//				cout << endl;
+//			}	
+			#endif
+			
+			map<node *,set<node*> >node_to_set;//记录每个点对应的集合
+			map<set<node*>,node *>set_to_newnode;
+			node *new_start = new node(START_TYPE,++status_tot);
+			vector<node*>new_end_node;
+			for(set< set<node*> >::iterator it_set = all_set.begin();it_set != all_set.end();it_set++){
+				if((*it_set).count(start_node)){
+					set_to_newnode[*it_set] = new_start;
+				}else if((*((*it_set).begin()))->is_end ){
+					node *temp_node = new node(END_TYPE,++status_tot);
+					new_end_node.push_back(temp_node);
+					set_to_newnode[*it_set] = temp_node;
+				}else{
+					node *temp_node = new node(0,++status_tot);
+					set_to_newnode[*it_set] = temp_node;
+				}
+				
+				for(set<node*>::iterator i_node = (*it_set).begin();i_node != (*it_set).end();i_node++){
+					node_to_set[(*i_node)] = *it_set;
+				}
+			}
+			
+			rep(i,sz){
+				rep(j,Sz(all_node[i]->nxt)){
+					node *nxt = set_to_newnode[node_to_set[all_node[i]->nxt[j].first]];
+					int type = all_node[i]->nxt[j].second;
+					bool flag = true;
+					//此处防止重边 
+
+					if(find(set_to_newnode[node_to_set[all_node[i]]]->nxt.begin(),set_to_newnode[node_to_set[all_node[i]]]->nxt.end(),make_pair(nxt,type))==set_to_newnode[node_to_set[all_node[i]]]->nxt.end())
+					{
+						set_to_newnode[node_to_set[all_node[i]]]->nxt.push_back(make_pair(nxt,type));
+					}
+					
+				}
+			}
+			start_node = new_start;
+			end_node = new_end_node;
+
+			return *this;
+		}
+		
+		bool try_re(string in_string)
+		{
+			int len = Len(in_string);
+			node *now = start_node;
+			rep(i,len){
+				if(!op_num_map.count(in_string[i]))return false;//匹配字符串中出现了正则中未出现的终结字符 
+				rep(j,Sz(now->nxt)){
+					if(now->nxt[j].second == op_num_map[in_string[i]]){
+						now = now->nxt[j].first;
+						break;
+					}
+				}
+			}
+			if(now->is_end)return true;
+			else return false;
+		}
 		
 		node *start_node;
 		vector<node*>end_node;
@@ -459,6 +626,21 @@ int main()
 			cout << "\n-------\nDFA:\n";
 			suffix_fa->debug_print();
 			#endif
+			
+			suffix_fa->simplify_dfa();
+			
+			#ifdef DEBUG
+			cout << "\n-------\nSimplified_DFA:\n";
+			suffix_fa->debug_print();
+			#endif
+			
+			if(suffix_fa->try_re(in_string)){
+				cout << "输入字符串符合正则\n"; 
+			}else{
+				cout << "输入字符串不符合正则\n"; 
+			}
+			
+			
 			
 
 		}catch(const char *msg){
